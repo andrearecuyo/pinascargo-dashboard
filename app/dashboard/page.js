@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import NavHeader from "../../components/NavHeader.js";
+import Sidebar from "../../components/Sidebar.js";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -54,15 +54,14 @@ export default function DashboardPage() {
     }, [requests, typeFilter, assignedFilter, search]);
 
     return (
-        <div>
-            <NavHeader
-                title="📦 Requests"
+        <div style={{ display: "flex" }}>
+            <Sidebar
                 activeTab="dashboard"
                 onLogout={handleLogout}
-                extra={<span style={{ fontSize: 13, color: "#C7CBEE" }}>{requests.length} total — showing {filtered.length}</span>}
+                extra={<span style={{ fontSize: 12, color: "#C7CBEE" }}>{requests.length} total — showing {filtered.length}</span>}
             />
 
-            <main style={{ padding: 24, maxWidth: 1500, margin: "0 auto" }}>
+            <main style={{ flex: 1, padding: 24, maxWidth: 1500, margin: "0 auto" }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
                     <button onClick={loadRequests} style={{
                         background: "#E2231A", color: "#fff", border: "none", borderRadius: 8,

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import NavHeader from "../../components/NavHeader.js";
+import Sidebar from "../../components/Sidebar.js";
 
 const TEAM_ORDER = ["DUBAI", "ABU DHABI", "SHARJAH", "FUJAIRAH", "RAS AL KHAIMAH", "AL AIN"];
 const DAY_OPTIONS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
@@ -127,10 +127,10 @@ export default function TeamsPage() {
     }
 
     return (
-        <div>
-            <NavHeader title="🚚 Teams" activeTab="teams" onLogout={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/login"); }} />
+        <div style={{ display: "flex" }}>
+            <Sidebar activeTab="teams" onLogout={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/login"); }} />
 
-            <main style={{ padding: 24, maxWidth: 1300, margin: "0 auto" }}>
+            <main style={{ flex: 1, padding: 24, maxWidth: 1300, margin: "0 auto" }}>
                 {status && <div style={{ padding: 20, textAlign: "center", color: "#4B5468" }}>{status}</div>}
 
                 {!status && teamNames.map(team => (

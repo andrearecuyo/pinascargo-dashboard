@@ -48,7 +48,15 @@ export default function LoginPage() {
                     maxWidth: 380
                 }}
             >
-                <h1 style={{ fontSize: 22, marginTop: 0, marginBottom: 6 }}>📦 Dispatch Dashboard</h1>
+                <img
+                    src="https://app.pinascargo.com/uploads/company/logo.png"
+                    alt="Pinas Express Cargo & Clearing LLC"
+                    style={{ width: "100%", maxWidth: 220, margin: "0 auto 20px", display: "block" }}
+                />
+                <h1 style={{ fontSize: 20, marginTop: 0, marginBottom: 6, textAlign: "center" }}>Pinas Cargo Standalone App</h1>
+                <p style={{ color: "#9AA0AE", fontSize: 12, marginTop: 0, marginBottom: 20, textAlign: "center" }}>
+                    v1.0.0
+                </p>
                 <p style={{ color: "#4B5468", fontSize: 14, marginTop: 0, marginBottom: 24 }}>
                     Enter the dashboard password to continue.
                 </p>
@@ -90,6 +98,12 @@ export default function LoginPage() {
                 >
                     {loading ? "Signing in..." : "Sign in"}
                 </button>
+
+                <div style={{ marginTop: 24, textAlign: "center", fontSize: 12, color: "#9AA0AE", lineHeight: 1.6 }}>
+                    © 2026 PINAS EXPRESS CARGO &amp; CLEARING LLC · All rights reserved
+                    <br />
+                    Authorized personnel only · Access is logged and monitored
+                </div>
             </form>
         </div>
     );
