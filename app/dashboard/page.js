@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import NavHeader from "../../components/NavHeader.js";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -54,23 +55,12 @@ export default function DashboardPage() {
 
     return (
         <div>
-            <header style={{
-                background: "#1B1F5C", color: "#fff", padding: "20px 28px",
-                display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12
-            }}>
-                <h1 style={{ margin: 0, fontSize: 20 }}>📦 Requests Dashboard</h1>
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <span style={{ fontSize: 13, color: "#C7CBEE" }}>
-                        {requests.length} total — showing {filtered.length}
-                    </span>
-                    <button onClick={handleLogout} style={{
-                        background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,0.4)",
-                        borderRadius: 8, padding: "8px 14px", fontSize: 13, cursor: "pointer"
-                    }}>
-                        Log out
-                    </button>
-                </div>
-            </header>
+            <NavHeader
+                title="📦 Requests"
+                activeTab="dashboard"
+                onLogout={handleLogout}
+                extra={<span style={{ fontSize: 13, color: "#C7CBEE" }}>{requests.length} total — showing {filtered.length}</span>}
+            />
 
             <main style={{ padding: 24, maxWidth: 1500, margin: "0 auto" }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
