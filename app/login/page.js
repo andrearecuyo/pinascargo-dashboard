@@ -1,0 +1,96 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function LoginPage() {
+    const router = useRouter();
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+
+        try {
+            const response = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                router.push("/dashboard");
+                router.refresh();
+            } else {
+                setError(data.error || "Login failed.");
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <form
+                onSubmit={handleSubmit}
+                style={{
+                    background: "#fff",
+                    borderRadius: 16,
+                    boxShadow: "0 20px 50px rgba(20,24,80,0.12)",
+                    padding: 40,
+                    width: "100%",
+                    maxWidth: 380
+                }}
+            >
+                <h1 style={{ fontSize: 22, marginTop: 0, marginBottom: 6 }}>📦 Dispatch Dashboard</h1>
+                <p style={{ color: "#4B5468", fontSize: 14, marginTop: 0, marginBottom: 24 }}>
+                    Enter the dashboard password to continue.
+                </p>
+
+                <label style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Password</label>
+                <input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    autoFocus
+                    style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                        padding: "12px 14px",
+                        border: "1px solid #E2E4E9",
+                        borderRadius: 8,
+                        fontSize: 15,
+                        marginBottom: 16
+                    }}
+                />
+
+                {error && <div style={{ color: "#E2231A", fontSize: 14, marginBottom: 16 }}>{error}</div>}
+
+                <button
+                    type="submit"
+                    disabled={loading}
+                    style={{
+                        width: "100%",
+                        background: "#E2231A",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 8,
+                        padding: 12,
+                        fontSize: 15,
+                        fontWeight: 700,
+                        cursor: loading ? "not-allowed" : "pointer",
+                        opacity: loading ? 0.7 : 1
+                    }}
+                >
+                    {loading ? "Signing in..." : "Sign in"}
+                </button>
+            </form>
+        </div>
+    );
+}
