@@ -13,7 +13,10 @@ export default function Sidebar({ activeTab, onLogout, extra }) {
         <aside style={{
             width: 240,
             minWidth: 240,
-            minHeight: "100vh",
+            height: "100vh",
+            position: "sticky",
+            top: 0,
+            overflowY: "auto",
             background: "#1B1F5C",
             color: "#fff",
             display: "flex",
