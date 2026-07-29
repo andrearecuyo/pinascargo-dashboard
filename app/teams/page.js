@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar.js";
 import PageHeader from "../../components/PageHeader.js";
+import DriverAssigneeBot from "../../components/DriverAssigneeBot.js";
 
 const TEAM_ORDER = ["DUBAI", "ABU DHABI", "SHARJAH", "FUJAIRAH", "RAS AL KHAIMAH", "AL AIN"];
 const DAY_OPTIONS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
@@ -131,8 +132,10 @@ export default function TeamsPage() {
         <div style={{ display: "flex" }}>
             <Sidebar activeTab="teams" onLogout={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/login"); }} />
 
-            <main style={{ flex: 1, padding: 24, maxWidth: 1300, margin: "0 auto" }}>
+            <main style={{ flex: 1, padding: 24, maxWidth: 1500, margin: "0 auto" }}>
                 <PageHeader title="Team Area Assignment" />
+                <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                 {status && <div style={{ padding: 20, textAlign: "center", color: "#4B5468" }}>{status}</div>}
 
                 {!status && teamNames.map(team => (
@@ -179,6 +182,12 @@ export default function TeamsPage() {
                         </div>
                     </div>
                 ))}
+                </div>
+
+                <div style={{ width: 300, flexShrink: 0 }}>
+                    <DriverAssigneeBot drivers={drivers} />
+                </div>
+                </div>
 
                 {editingId !== null && (
                     <div style={overlayStyle} onClick={cancelEdit}>
