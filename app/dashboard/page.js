@@ -108,7 +108,7 @@ export default function DashboardPage() {
                         <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13.5 }}>
                             <thead>
                                 <tr>
-                                    {["Date", "Customer", "Phone", "City", "Address", "Type", "Item Description", "Status", "Assigned Driver"].map(h => (
+                                    {["Date", "Customer", "Phone", "City", "Address", "Pin Address", "Type", "Item Description", "Status", "Assigned Driver"].map(h => (
                                         <th key={h} style={thStyle}>{h}</th>
                                     ))}
                                 </tr>
@@ -120,6 +120,7 @@ export default function DashboardPage() {
                                         <td style={tdStyle}>{r.customer_name} {r.customer_lname}</td>
                                         <td style={tdStyle}>{r.customer_phone}</td>
                                         <td style={tdStyle}>{r.customer_city}</td>
+                                        <td style={{ ...tdStyle, whiteSpace: "normal", maxWidth: 260 }}>{r.customer_address || ""}</td>
                                         <td style={{ ...tdStyle, whiteSpace: "normal", maxWidth: 260 }}>
                                             {r.pin_address ? (
                                                 <a
@@ -129,7 +130,9 @@ export default function DashboardPage() {
                                                 >
                                                     {r.pin_address}
                                                 </a>
-                                            ) : (r.customer_address || "")}
+                                            ) : (
+                                                <span style={{ color: "#9AA0AE" }}>No pin</span>
+                                            )}
                                         </td>
                                         <td style={tdStyle}>{r.request_type}</td>
                                         <td style={{ ...tdStyle, whiteSpace: "normal", maxWidth: 260 }}>{r.item_description || ""}</td>
