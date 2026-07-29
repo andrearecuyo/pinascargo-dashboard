@@ -17,5 +17,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/teams/:path*", "/cbm/:path*", "/api/requests/:path*", "/api/teams/:path*", "/api/match-driver/:path*"]
+    matcher: ["/dashboard/:path*", "/teams/:path*", "/cbm/:path*", "/api/requests/:path*", "/api/teams/:path*", "/api/match-driver/:path*", "/api/match-driver-by-address/:path*"]
 };
