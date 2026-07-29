@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar.js";
+import PageHeader from "../../components/PageHeader.js";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -62,6 +63,7 @@ export default function DashboardPage() {
             />
 
             <main style={{ flex: 1, padding: 24, maxWidth: 1500, margin: "0 auto" }}>
+                <PageHeader title="Box Delivery / Pick Up Request" />
                 <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
                     <button onClick={loadRequests} style={{
                         background: "#E2231A", color: "#fff", border: "none", borderRadius: 8,

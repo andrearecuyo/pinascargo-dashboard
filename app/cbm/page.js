@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar.js";
+import PageHeader from "../../components/PageHeader.js";
 
 function emptyItem() {
     return { label: "", length: "", width: "", height: "", qty: "1" };
@@ -47,6 +48,7 @@ export default function CbmPage() {
             <Sidebar activeTab="cbm" onLogout={handleLogout} />
 
             <main style={{ flex: 1, padding: 24, maxWidth: 1000, margin: "0 auto" }}>
+                <PageHeader title="CBM" />
                 <p style={{ color: "#4B5468", fontSize: 14, marginTop: 0 }}>
                     Enter box dimensions in centimeters. Cubic Meters (CBM) = (Length × Width × Height) ÷ 1,000,000.
                     This is a standalone calculator — not tied to any request or team assignment.
