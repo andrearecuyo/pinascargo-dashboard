@@ -99,7 +99,7 @@ export default function DashboardPage() {
                         <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13.5 }}>
                             <thead>
                                 <tr>
-                                    {["Date", "Customer", "Phone", "City", "Address", "Pin Address", "Type", "Item Description", "Status", "Assigned Driver"].map(h => (
+                                    {["Date", "Customer", "Phone", "City", "Address", "Pin Address", "Type", "Item Description", "Payment Method", "Status", "Assigned Driver"].map(h => (
                                         <th key={h} style={thStyle}>{h}</th>
                                     ))}
                                 </tr>
@@ -127,6 +127,7 @@ export default function DashboardPage() {
                                         </td>
                                         <td style={tdStyle}>{r.request_type}</td>
                                         <td style={{ ...tdStyle, whiteSpace: "normal", maxWidth: 260 }}>{r.item_description || ""}</td>
+                                        <td style={tdStyle}>{r.payment_mode || <span style={{ color: "#9AA0AE" }}>—</span>}</td>
                                         <td style={tdStyle}>
                                             {r.pinas_status === 1 ? (
                                                 <span style={badgeStyle("#E6F4EA", "#1E7E34")}>
