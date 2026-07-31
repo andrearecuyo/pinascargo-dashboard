@@ -24,7 +24,7 @@ export default function Sidebar({ activeTab, onLogout, extra }) {
         fetch("/api/session").then(r => r.ok ? r.json() : null).then(data => setRole(data?.role || "admin")).catch(() => setRole("admin"));
     }, []);
 
-    const tabs = role ? TABS.filter(t => t.roles.includes(role)) : TABS;
+    const tabs = role ? TABS.filter(t => t.roles.includes(role)) : [];
 
     return (
         <aside style={{
