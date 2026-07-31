@@ -70,7 +70,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     autoFocus
-                    placeholder="Leave blank to use the shared admin password"
+                    placeholder=""
                     style={{
                         width: "100%",
                         boxSizing: "border-box",
