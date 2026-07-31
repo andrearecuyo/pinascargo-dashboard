@@ -1,14 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const TABS = [
-    { key: "dashboard", label: "📦 Requests", href: "/dashboard" },
-    { key: "teams", label: "🚚 Teams", href: "/teams" },
-    { key: "cbm", label: "📐 CBM Calculator", href: "/cbm" }
+    { key: "dashboard", label: "📦 Requests", href: "/dashboard", roles: ["admin"] },
+    { key: "teams", label: "🚚 Teams", href: "/teams", roles: ["admin"] },
+    { key: "cbm", label: "📐 CBM Calculator", href: "/cbm", roles: ["admin"] },
+    {
+        key: "marketing",
+        label: "📣 Marketing",
+        roles: ["admin", "marketing"],
+        children: [
+            { key: "marketing-qr-codes", label: "QR Code", href: "/marketing/qr-codes" }
+        ]
+    }
 ];
 
 export default function Sidebar({ activeTab, onLogout, extra }) {
+    const [role, setRole] = useState(null);
+
+    useEffect(() => {
+        fetch("/api/session").then(r => r.ok ? r.json() : null).then(data => setRole(data?.role || "admin")).catch(() => setRole("admin"));
+    }, []);
+
+    const tabs = role ? TABS.filter(t => t.roles.includes(role)) : TABS;
+
     return (
         <aside style={{
             width: 240,
@@ -30,7 +47,37 @@ export default function Sidebar({ activeTab, onLogout, extra }) {
             />
 
             <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {TABS.map(t => (
+                {tabs.map(t => t.children ? (
+                    <div key={t.key}>
+                        <div style={{
+                            color: "#fff",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            padding: "11px 14px"
+                        }}>
+                            {t.label}
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, paddingLeft: 16 }}>
+                            {t.children.map(c => (
+                                <Link
+                                    key={c.key}
+                                    href={c.href}
+                                    style={{
+                                        color: "#fff",
+                                        textDecoration: "none",
+                                        fontSize: 13.5,
+                                        fontWeight: 600,
+                                        padding: "10px 14px",
+                                        borderRadius: 8,
+                                        background: activeTab === c.key ? "rgba(255,255,255,0.18)" : "transparent"
+                                    }}
+                                >
+                                    {c.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
                     <Link
                         key={t.key}
                         href={t.href}
