@@ -4,18 +4,37 @@ import { getDb } from "../../../../../lib/db.js";
 // Auth is enforced by middleware.js before these routes ever run.
 // Note: slug (and therefore the QR image itself) is never touched here — only the destination details change.
 
+function isHexColor(value) {
+    return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value);
+}
+
 export async function PUT(request, { params }) {
     const { id } = await params;
-    const { name, type, target_url, company_name, tagline, logo_url, phone, email, address, website, links } = await request.json();
+    const {
+        name, type, target_url, company_name, tagline, logo_url, phone, email, address, website, links,
+        contact_name, job_title, ios_url, android_url, fallback_url, fg_color, bg_color
+    } = await request.json();
 
     if (!name || !type) {
         return NextResponse.json({ error: "name and type are required." }, { status: 400 });
     }
-    if (!["link", "multilink"].includes(type)) {
-        return NextResponse.json({ error: "type must be 'link' or 'multilink'." }, { status: 400 });
+    if (!["link", "multilink", "vcard", "applink"].includes(type)) {
+        return NextResponse.json({ error: "type must be 'link', 'multilink', 'vcard', or 'applink'." }, { status: 400 });
     }
     if (type === "link" && !target_url) {
         return NextResponse.json({ error: "target_url is required for a single-link QR code." }, { status: 400 });
+    }
+    if (type === "vcard" && !contact_name && !company_name) {
+        return NextResponse.json({ error: "contact_name or company_name is required for a vCard QR code." }, { status: 400 });
+    }
+    if (type === "applink" && !ios_url && !android_url && !fallback_url) {
+        return NextResponse.json({ error: "At least one of ios_url, android_url, or fallback_url is required for an App Link QR code." }, { status: 400 });
+    }
+    if (fg_color !== undefined && fg_color !== "" && !isHexColor(fg_color)) {
+        return NextResponse.json({ error: "fg_color must be a hex color like #1B1F5C." }, { status: 400 });
+    }
+    if (bg_color !== undefined && bg_color !== "" && !isHexColor(bg_color)) {
+        return NextResponse.json({ error: "bg_color must be a hex color like #FFFFFF." }, { status: 400 });
     }
 
     const db = getDb();
@@ -24,9 +43,11 @@ export async function PUT(request, { params }) {
         await client.query("BEGIN");
         const { rowCount } = await client.query(
             `UPDATE qr_codes SET name=$1, type=$2, target_url=$3, company_name=$4, tagline=$5, logo_url=$6,
-                phone=$7, email=$8, address=$9, website=$10, updated_at=now()
-             WHERE id=$11`,
-            [name, type, type === "link" ? target_url : null, company_name || null, tagline || null, logo_url || null, phone || null, email || null, address || null, website || null, id]
+                phone=$7, email=$8, address=$9, website=$10, contact_name=$11, job_title=$12,
+                ios_url=$13, android_url=$14, fallback_url=$15, fg_color=$16, bg_color=$17, updated_at=now()
+             WHERE id=$18`,
+            [name, type, type === "link" ? target_url : null, company_name || null, tagline || null, logo_url || null, phone || null, email || null, address || null, website || null,
+                contact_name || null, job_title || null, ios_url || null, android_url || null, fallback_url || null, fg_color || "#000000", bg_color || "#FFFFFF", id]
         );
         if (rowCount === 0) {
             await client.query("ROLLBACK");

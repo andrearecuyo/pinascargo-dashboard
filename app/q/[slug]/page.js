@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { getDb } from "../../../lib/db.js";
 
@@ -10,6 +11,15 @@ export default async function QrLandingPage({ params }) {
 
     if (qr.type === "link") {
         redirect(qr.target_url);
+    }
+
+    if (qr.type === "applink") {
+        const userAgent = (await headers()).get("user-agent") || "";
+        const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+        const isAndroid = /Android/i.test(userAgent);
+        const destination = (isIOS && qr.ios_url) || (isAndroid && qr.android_url) || qr.fallback_url || qr.ios_url || qr.android_url;
+        if (!destination) notFound();
+        redirect(destination);
     }
 
     const { rows: links } = await db.query(

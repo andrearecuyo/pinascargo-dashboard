@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS qr_codes (
     id SERIAL PRIMARY KEY,
     slug TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
-    type TEXT NOT NULL CHECK (type IN ('link', 'multilink')),
+    type TEXT NOT NULL CHECK (type IN ('link', 'multilink', 'vcard', 'applink')),
     target_url TEXT,
     company_name TEXT,
     tagline TEXT,
@@ -37,9 +37,26 @@ CREATE TABLE IF NOT EXISTS qr_codes (
     email TEXT,
     address TEXT,
     website TEXT,
+    contact_name TEXT,
+    job_title TEXT,
+    ios_url TEXT,
+    android_url TEXT,
+    fallback_url TEXT,
+    fg_color TEXT NOT NULL DEFAULT '#000000',
+    bg_color TEXT NOT NULL DEFAULT '#FFFFFF',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE qr_codes DROP CONSTRAINT IF EXISTS qr_codes_type_check;
+ALTER TABLE qr_codes ADD CONSTRAINT qr_codes_type_check CHECK (type IN ('link', 'multilink', 'vcard', 'applink'));
+ALTER TABLE qr_codes ADD COLUMN IF NOT EXISTS contact_name TEXT;
+ALTER TABLE qr_codes ADD COLUMN IF NOT EXISTS job_title TEXT;
+ALTER TABLE qr_codes ADD COLUMN IF NOT EXISTS ios_url TEXT;
+ALTER TABLE qr_codes ADD COLUMN IF NOT EXISTS android_url TEXT;
+ALTER TABLE qr_codes ADD COLUMN IF NOT EXISTS fallback_url TEXT;
+ALTER TABLE qr_codes ADD COLUMN IF NOT EXISTS fg_color TEXT NOT NULL DEFAULT '#000000';
+ALTER TABLE qr_codes ADD COLUMN IF NOT EXISTS bg_color TEXT NOT NULL DEFAULT '#FFFFFF';
 
 CREATE TABLE IF NOT EXISTS qr_code_links (
     id SERIAL PRIMARY KEY,

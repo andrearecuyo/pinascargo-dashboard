@@ -5,10 +5,15 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../../components/Sidebar.js";
 import PageHeader from "../../../components/PageHeader.js";
 
+const DOWNLOAD_SIZES = [512, 1024, 2000];
+const TYPE_LABELS = { link: "Single link", multilink: "Multi-link", vcard: "vCard", applink: "App Link" };
+
 function emptyForm() {
     return {
         name: "", type: "link", target_url: "",
         company_name: "", tagline: "", logo_url: "", phone: "", email: "", address: "", website: "",
+        contact_name: "", job_title: "", ios_url: "", android_url: "", fallback_url: "",
+        fg_color: "#000000", bg_color: "#FFFFFF",
         links: [{ label: "", url: "" }]
     };
 }
@@ -21,6 +26,7 @@ export default function QrCodesPage() {
     const [form, setForm] = useState(emptyForm());
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [downloadSize, setDownloadSize] = useState(1024);
 
     async function load() {
         setStatus("Loading...");
@@ -55,6 +61,13 @@ export default function QrCodesPage() {
             email: c.email || "",
             address: c.address || "",
             website: c.website || "",
+            contact_name: c.contact_name || "",
+            job_title: c.job_title || "",
+            ios_url: c.ios_url || "",
+            android_url: c.android_url || "",
+            fallback_url: c.fallback_url || "",
+            fg_color: c.fg_color || "#000000",
+            bg_color: c.bg_color || "#FFFFFF",
             links: c.links.length ? c.links.map(l => ({ label: l.label, url: l.url })) : [{ label: "", url: "" }]
         });
         setEditingId(c.id);
@@ -96,6 +109,13 @@ export default function QrCodesPage() {
             email: form.email.trim(),
             address: form.address.trim(),
             website: form.website.trim(),
+            contact_name: form.contact_name.trim(),
+            job_title: form.job_title.trim(),
+            ios_url: form.ios_url.trim(),
+            android_url: form.android_url.trim(),
+            fallback_url: form.fallback_url.trim(),
+            fg_color: form.fg_color,
+            bg_color: form.bg_color,
             links: form.type === "multilink" ? form.links.filter(l => l.label.trim() && l.url.trim()) : []
         };
 
@@ -145,7 +165,15 @@ export default function QrCodesPage() {
             <main style={{ flex: 1, padding: 24, maxWidth: 1100, margin: "0 auto" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <PageHeader title="QR Codes" />
-                    <button onClick={startAdd} style={addBtnStyle}>+ New QR Code</button>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                        <label style={{ fontSize: 13, color: "#4B5468" }}>
+                            Download size{" "}
+                            <select value={downloadSize} onChange={e => setDownloadSize(Number(e.target.value))} style={{ ...inputStyle, width: "auto", padding: "6px 8px", fontSize: 13 }}>
+                                {DOWNLOAD_SIZES.map(s => <option key={s} value={s}>{s}px</option>)}
+                            </select>
+                        </label>
+                        <button onClick={startAdd} style={addBtnStyle}>+ New QR Code</button>
+                    </div>
                 </div>
 
                 {status && <div style={{ padding: 20, textAlign: "center", color: "#4B5468" }}>{status}</div>}
@@ -155,18 +183,21 @@ export default function QrCodesPage() {
                         {codes.map(c => (
                             <div key={c.id} style={{ background: "#fff", borderRadius: 12, boxShadow: "0 4px 16px rgba(20,24,80,0.08)", padding: 18 }}>
                                 <div style={{ display: "flex", gap: 14 }}>
-                                    <img src={`/api/marketing/qr-codes/${c.id}/image`} alt={c.name} style={{ width: 90, height: 90, borderRadius: 8, border: "1px solid #EEF0F4" }} />
+                                    <img src={`/api/marketing/qr-codes/${c.id}/image?size=200`} alt={c.name} style={{ width: 90, height: 90, borderRadius: 8, border: "1px solid #EEF0F4" }} />
                                     <div style={{ minWidth: 0, flex: 1 }}>
                                         <div style={{ fontWeight: 700, color: "#1B1F5C", fontSize: 15 }}>{c.name}</div>
-                                        <div style={{ fontSize: 12, color: "#9AA0AE", marginBottom: 6, textTransform: "capitalize" }}>{c.type === "link" ? "Single link" : "Multi-link"}</div>
+                                        <div style={{ fontSize: 12, color: "#9AA0AE", marginBottom: 6 }}>{TYPE_LABELS[c.type] || c.type}</div>
                                         <div style={{ fontSize: 12.5, color: "#4B5468", wordBreak: "break-all" }}>
-                                            {c.type === "link" ? c.target_url : `${c.links.length} link${c.links.length === 1 ? "" : "s"}`}
+                                            {c.type === "link" && c.target_url}
+                                            {c.type === "multilink" && `${c.links.length} link${c.links.length === 1 ? "" : "s"}`}
+                                            {c.type === "vcard" && (c.contact_name || c.company_name)}
+                                            {c.type === "applink" && (c.ios_url || c.android_url || c.fallback_url)}
                                         </div>
                                     </div>
                                 </div>
                                 <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
                                     <button onClick={() => startEdit(c)} style={linkBtnStyle}>Edit</button>
-                                    <a href={`/api/marketing/qr-codes/${c.id}/image`} download={`${c.name}-qr.png`} style={{ ...linkBtnStyle, textDecoration: "none" }}>Download</a>
+                                    <a href={`/api/marketing/qr-codes/${c.id}/image?size=${downloadSize}`} download={`${c.name}-qr-${downloadSize}.png`} style={{ ...linkBtnStyle, textDecoration: "none" }}>Download</a>
                                     <button onClick={() => handleDelete(c)} style={{ ...linkBtnStyle, color: "#E2231A" }}>Delete</button>
                                 </div>
                             </div>
@@ -190,6 +221,8 @@ export default function QrCodesPage() {
                                     <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} style={inputStyle} disabled={editingId !== "new"}>
                                         <option value="link">Single link (redirects straight to a URL)</option>
                                         <option value="multilink">Multi-link (company details + all links)</option>
+                                        <option value="vcard">vCard (adds a contact directly, works offline)</option>
+                                        <option value="applink">App Link (opens the right app store per device)</option>
                                     </select>
                                 </div>
                             </div>
@@ -211,10 +244,6 @@ export default function QrCodesPage() {
                                         <div>
                                             <label style={labelStyle}>Tagline</label>
                                             <input value={form.tagline} onChange={e => setForm({ ...form, tagline: e.target.value })} style={inputStyle} />
-                                        </div>
-                                        <div>
-                                            <label style={labelStyle}>Logo URL</label>
-                                            <input value={form.logo_url} onChange={e => setForm({ ...form, logo_url: e.target.value })} style={inputStyle} />
                                         </div>
                                         <div>
                                             <label style={labelStyle}>Phone</label>
@@ -245,6 +274,73 @@ export default function QrCodesPage() {
                                     <button type="button" onClick={addLinkRow} style={{ ...linkBtnStyle, marginBottom: 10 }}>+ Add link</button>
                                 </>
                             )}
+
+                            {form.type === "vcard" && (
+                                <div style={fieldGridStyle}>
+                                    <div>
+                                        <label style={labelStyle}>Contact Name *</label>
+                                        <input required value={form.contact_name} onChange={e => setForm({ ...form, contact_name: e.target.value })} style={inputStyle} placeholder="Juan Dela Cruz" />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Job Title</label>
+                                        <input value={form.job_title} onChange={e => setForm({ ...form, job_title: e.target.value })} style={inputStyle} />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Company</label>
+                                        <input value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} style={inputStyle} />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Phone</label>
+                                        <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} style={inputStyle} />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Email</label>
+                                        <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} style={inputStyle} />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Website</label>
+                                        <input value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} style={inputStyle} />
+                                    </div>
+                                    <div style={{ gridColumn: "1 / -1" }}>
+                                        <label style={labelStyle}>Address</label>
+                                        <input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} style={{ ...inputStyle, width: "100%", boxSizing: "border-box" }} />
+                                    </div>
+                                </div>
+                            )}
+
+                            {form.type === "applink" && (
+                                <div style={{ marginBottom: 14 }}>
+                                    <p style={{ fontSize: 12.5, color: "#9AA0AE", marginTop: 0 }}>Scanned on iPhone opens the iOS link, on Android opens the Android link; anything else falls back.</p>
+                                    <div style={fieldGridStyle}>
+                                        <div>
+                                            <label style={labelStyle}>iOS URL (App Store)</label>
+                                            <input type="url" value={form.ios_url} onChange={e => setForm({ ...form, ios_url: e.target.value })} style={inputStyle} placeholder="https://apps.apple.com/..." />
+                                        </div>
+                                        <div>
+                                            <label style={labelStyle}>Android URL (Play Store)</label>
+                                            <input type="url" value={form.android_url} onChange={e => setForm({ ...form, android_url: e.target.value })} style={inputStyle} placeholder="https://play.google.com/store/apps/..." />
+                                        </div>
+                                    </div>
+                                    <label style={labelStyle}>Fallback URL</label>
+                                    <input type="url" value={form.fallback_url} onChange={e => setForm({ ...form, fallback_url: e.target.value })} style={{ ...inputStyle, width: "100%", boxSizing: "border-box" }} placeholder="https://yourcompany.com" />
+                                </div>
+                            )}
+
+                            <label style={labelStyle}>Brand Customization</label>
+                            <div style={{ ...fieldGridStyle, gridTemplateColumns: "1fr 1fr 1fr" }}>
+                                <div>
+                                    <label style={{ ...labelStyle, fontWeight: 400 }}>Logo URL</label>
+                                    <input value={form.logo_url} onChange={e => setForm({ ...form, logo_url: e.target.value })} style={inputStyle} placeholder="https://.../logo.png" />
+                                </div>
+                                <div>
+                                    <label style={{ ...labelStyle, fontWeight: 400 }}>Foreground Color</label>
+                                    <input type="color" value={form.fg_color} onChange={e => setForm({ ...form, fg_color: e.target.value })} style={{ ...inputStyle, padding: 4, height: 36 }} />
+                                </div>
+                                <div>
+                                    <label style={{ ...labelStyle, fontWeight: 400 }}>Background Color</label>
+                                    <input type="color" value={form.bg_color} onChange={e => setForm({ ...form, bg_color: e.target.value })} style={{ ...inputStyle, padding: 4, height: 36 }} />
+                                </div>
+                            </div>
 
                             {error && <div style={{ color: "#E2231A", fontSize: 14, marginTop: 8 }}>{error}</div>}
 
