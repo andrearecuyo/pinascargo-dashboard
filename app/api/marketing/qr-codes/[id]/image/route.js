@@ -6,26 +6,9 @@ const MIN_SIZE = 128;
 const MAX_SIZE = 2000;
 const DEFAULT_SIZE = 512;
 
-// The link/multilink/applink QR image encodes the qr code's stable /q/[slug] URL — since the
-// slug never changes, this image stays valid no matter how the destination details are edited
-// later. vCard QR codes instead embed the contact data directly so a phone can add it offline.
-
-function escapeVCardValue(value) {
-    return String(value).replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
-}
-
-function buildVCardPayload(qr) {
-    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
-    if (qr.contact_name) lines.push(`FN:${escapeVCardValue(qr.contact_name)}`, `N:${escapeVCardValue(qr.contact_name)};;;;`);
-    if (qr.company_name) lines.push(`ORG:${escapeVCardValue(qr.company_name)}`);
-    if (qr.job_title) lines.push(`TITLE:${escapeVCardValue(qr.job_title)}`);
-    if (qr.phone) lines.push(`TEL;TYPE=CELL:${escapeVCardValue(qr.phone)}`);
-    if (qr.email) lines.push(`EMAIL:${escapeVCardValue(qr.email)}`);
-    if (qr.address) lines.push(`ADR;TYPE=WORK:;;${escapeVCardValue(qr.address)};;;;`);
-    if (qr.website) lines.push(`URL:${escapeVCardValue(qr.website)}`);
-    lines.push("END:VCARD");
-    return lines.join("\n");
-}
+// The QR image always encodes the qr code's stable /q/[slug] URL — since the slug never
+// changes, a printed code stays valid no matter how the destination details (including
+// vCard fields) are edited later. The /q/[slug] page renders the current data live.
 
 function isHexColor(value) {
     return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value);
@@ -93,9 +76,7 @@ export async function GET(request, { params }) {
         const lightColor = isHexColor(qr.bg_color) ? qr.bg_color : "#FFFFFF";
         const hasLogo = !!qr.logo_url;
 
-        const payload = qr.type === "vcard"
-            ? buildVCardPayload(qr)
-            : `${request.nextUrl.origin}/q/${qr.slug}`;
+        const payload = `${request.nextUrl.origin}/q/${qr.slug}`;
 
         let png = await QRCode.toBuffer(payload, {
             type: "png",

@@ -22,10 +22,9 @@ export default async function QrLandingPage({ params }) {
         redirect(destination);
     }
 
-    const { rows: links } = await db.query(
-        "SELECT label, url FROM qr_code_links WHERE qr_code_id = $1 ORDER BY sort_order, id",
-        [qr.id]
-    );
+    const { rows: links } = qr.type === "multilink"
+        ? await db.query("SELECT label, url FROM qr_code_links WHERE qr_code_id = $1 ORDER BY sort_order, id", [qr.id])
+        : { rows: [] };
 
     return (
         <div style={{ minHeight: "100vh", background: "#F7F8FA", display: "flex", justifyContent: "center", padding: "40px 16px" }}>
@@ -33,7 +32,8 @@ export default async function QrLandingPage({ params }) {
                 {qr.logo_url && (
                     <img src={qr.logo_url} alt={qr.company_name || qr.name} style={{ width: 96, height: 96, objectFit: "contain", margin: "0 auto 16px", display: "block" }} />
                 )}
-                <h1 style={{ fontSize: 22, color: "#1B1F5C", margin: "0 0 4px" }}>{qr.company_name || qr.name}</h1>
+                <h1 style={{ fontSize: 22, color: "#1B1F5C", margin: "0 0 4px" }}>{qr.type === "vcard" ? (qr.contact_name || qr.company_name || qr.name) : (qr.company_name || qr.name)}</h1>
+                {qr.type === "vcard" && qr.job_title && <p style={{ color: "#4B5468", fontSize: 14, margin: "0 0 4px" }}>{qr.job_title}{qr.company_name ? ` · ${qr.company_name}` : ""}</p>}
                 {qr.tagline && <p style={{ color: "#4B5468", fontSize: 14, margin: "0 0 20px" }}>{qr.tagline}</p>}
 
                 <div style={{ background: "#fff", borderRadius: 12, padding: 20, boxShadow: "0 4px 16px rgba(20,24,80,0.08)", marginBottom: 20, textAlign: "left" }}>
@@ -43,17 +43,28 @@ export default async function QrLandingPage({ params }) {
                     {qr.website && <div style={{ fontSize: 13.5, color: "#1B1F5C" }}>🌐 <a href={qr.website} style={{ color: "#1B1F5C" }}>{qr.website}</a></div>}
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {links.map((l, i) => (
-                        <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" style={{
-                            display: "block", background: "#1B1F5C", color: "#fff", textDecoration: "none",
-                            borderRadius: 10, padding: "14px 16px", fontSize: 15, fontWeight: 700
-                        }}>
-                            {l.label}
-                        </a>
-                    ))}
-                    {links.length === 0 && <p style={{ color: "#9AA0AE", fontSize: 13 }}>No links added yet.</p>}
-                </div>
+                {qr.type === "vcard" && (
+                    <a href={`/q/${qr.slug}/vcard`} style={{
+                        display: "block", background: "#1B1F5C", color: "#fff", textDecoration: "none",
+                        borderRadius: 10, padding: "14px 16px", fontSize: 15, fontWeight: 700
+                    }}>
+                        + Add to Contacts
+                    </a>
+                )}
+
+                {qr.type === "multilink" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {links.map((l, i) => (
+                            <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" style={{
+                                display: "block", background: "#1B1F5C", color: "#fff", textDecoration: "none",
+                                borderRadius: 10, padding: "14px 16px", fontSize: 15, fontWeight: 700
+                            }}>
+                                {l.label}
+                            </a>
+                        ))}
+                        {links.length === 0 && <p style={{ color: "#9AA0AE", fontSize: 13 }}>No links added yet.</p>}
+                    </div>
+                )}
             </div>
         </div>
     );
