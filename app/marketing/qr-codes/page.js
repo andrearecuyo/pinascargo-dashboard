@@ -8,10 +8,20 @@ import PageHeader from "../../../components/PageHeader.js";
 const DOWNLOAD_SIZES = [512, 1024, 2000];
 const TYPE_LABELS = { link: "Single link", multilink: "Multi-link", vcard: "vCard", applink: "App Link" };
 
-function emptyForm() {
+const BUSINESSES = [
+    { name: "Pinas Cargo", description: "Door-to-door sea and air freight, specializing in balikbayan box delivery across the UAE, Philippines, and Qatar." },
+    { name: "Pinas Spa and Beauty Center", description: "Wellness and personal care services." },
+    { name: "Pinas Travel", description: "Travel and ticketing assistance." },
+    { name: "Pinas Gold", description: "Gold investment and retail." },
+    { name: "Pinas Petals and Blooms", description: "Floral arrangement and design services." },
+    { name: "Pinas Cleaning Solutions", description: "Professional cleaning services." },
+    { name: "Pinas Aesthetic Polyclinic", description: "" }
+];
+
+function emptyForm(defaultBusiness = "") {
     return {
         name: "", type: "link", target_url: "",
-        company_name: "", tagline: "", logo_url: "", phone: "", email: "", address: "", website: "",
+        company_name: defaultBusiness, tagline: "", logo_url: "", phone: "", email: "", address: "", website: "",
         contact_name: "", job_title: "", ios_url: "", android_url: "", fallback_url: "",
         fg_color: "#000000", bg_color: "#FFFFFF",
         links: [{ label: "", url: "" }]
@@ -27,6 +37,7 @@ export default function QrCodesPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [downloadSize, setDownloadSize] = useState(1024);
+    const [activeBusiness, setActiveBusiness] = useState("All");
 
     async function load() {
         setStatus("Loading...");
@@ -44,7 +55,7 @@ export default function QrCodesPage() {
     useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     function startAdd() {
-        setForm(emptyForm());
+        setForm(emptyForm(activeBusiness === "All" ? "" : activeBusiness));
         setEditingId("new");
         setError("");
     }
@@ -176,11 +187,24 @@ export default function QrCodesPage() {
                     </div>
                 </div>
 
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "18px 0 6px", borderBottom: "1px solid #EEF0F4", paddingBottom: 14 }}>
+                    {["All", ...BUSINESSES.map(b => b.name)].map(name => (
+                        <button key={name} onClick={() => setActiveBusiness(name)} style={tabStyle(activeBusiness === name)}>
+                            {name}
+                        </button>
+                    ))}
+                </div>
+                {activeBusiness !== "All" && BUSINESSES.find(b => b.name === activeBusiness)?.description && (
+                    <div style={{ fontSize: 13, color: "#4B5468", margin: "0 0 16px" }}>
+                        {BUSINESSES.find(b => b.name === activeBusiness).description}
+                    </div>
+                )}
+
                 {status && <div style={{ padding: 20, textAlign: "center", color: "#4B5468" }}>{status}</div>}
 
                 {!status && (
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
-                        {codes.map(c => (
+                        {codes.filter(c => activeBusiness === "All" || c.company_name === activeBusiness).map(c => (
                             <div key={c.id} style={{ background: "#fff", borderRadius: 12, boxShadow: "0 4px 16px rgba(20,24,80,0.08)", padding: 18 }}>
                                 <div style={{ display: "flex", gap: 14 }}>
                                     <img src={`/api/marketing/qr-codes/${c.id}/image?size=200`} alt={c.name} style={{ width: 90, height: 90, borderRadius: 8, border: "1px solid #EEF0F4" }} />
@@ -202,7 +226,11 @@ export default function QrCodesPage() {
                                 </div>
                             </div>
                         ))}
-                        {codes.length === 0 && <div style={{ color: "#9AA0AE", padding: 20 }}>No QR codes yet.</div>}
+                        {codes.filter(c => activeBusiness === "All" || c.company_name === activeBusiness).length === 0 && (
+                            <div style={{ color: "#9AA0AE", padding: 20 }}>
+                                {activeBusiness === "All" ? "No QR codes yet." : `No QR codes yet for ${activeBusiness}.`}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -227,6 +255,14 @@ export default function QrCodesPage() {
                                 </div>
                             </div>
 
+                            <div style={{ marginBottom: 14 }}>
+                                <label style={labelStyle}>Business *</label>
+                                <select required value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} style={inputStyle}>
+                                    <option value="">Select a business</option>
+                                    {BUSINESSES.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+                                </select>
+                            </div>
+
                             {form.type === "link" && (
                                 <div style={{ marginBottom: 14 }}>
                                     <label style={labelStyle}>Destination URL *</label>
@@ -237,10 +273,6 @@ export default function QrCodesPage() {
                             {form.type === "multilink" && (
                                 <>
                                     <div style={fieldGridStyle}>
-                                        <div>
-                                            <label style={labelStyle}>Company Name</label>
-                                            <input value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} style={inputStyle} />
-                                        </div>
                                         <div>
                                             <label style={labelStyle}>Tagline</label>
                                             <input value={form.tagline} onChange={e => setForm({ ...form, tagline: e.target.value })} style={inputStyle} />
@@ -284,10 +316,6 @@ export default function QrCodesPage() {
                                     <div>
                                         <label style={labelStyle}>Job Title</label>
                                         <input value={form.job_title} onChange={e => setForm({ ...form, job_title: e.target.value })} style={inputStyle} />
-                                    </div>
-                                    <div>
-                                        <label style={labelStyle}>Company</label>
-                                        <input value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} style={inputStyle} />
                                     </div>
                                     <div>
                                         <label style={labelStyle}>Phone</label>
@@ -357,6 +385,11 @@ export default function QrCodesPage() {
 }
 
 const addBtnStyle = { background: "#1B1F5C", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" };
+const tabStyle = active => ({
+    background: active ? "#1B1F5C" : "#F7F8FA", color: active ? "#fff" : "#4B5468",
+    border: "1px solid " + (active ? "#1B1F5C" : "#E2E4E9"), borderRadius: 20, padding: "7px 14px",
+    fontSize: 13, fontWeight: 600, cursor: "pointer"
+});
 const linkBtnStyle = { background: "none", border: "none", color: "#1CA7EC", cursor: "pointer", fontSize: 13, padding: 0 };
 const overlayStyle = { position: "fixed", inset: 0, background: "rgba(20,24,80,0.35)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 50 };
 const modalStyle = { background: "#fff", borderRadius: 16, padding: 30, width: "100%", maxWidth: 600, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 50px rgba(20,24,80,0.25)" };
