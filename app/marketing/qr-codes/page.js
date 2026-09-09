@@ -6,7 +6,14 @@ import Sidebar from "../../../components/Sidebar.js";
 import PageHeader from "../../../components/PageHeader.js";
 
 const DOWNLOAD_SIZES = [512, 1024, 2000];
-const TYPE_LABELS = { link: "Single link", multilink: "Multi-link", vcard: "vCard", applink: "App Link" };
+const TYPE_LABELS = { link: "Single link", multilink: "Multi-link", vcard: "vCard", applink: "App Link", whatsapp: "WhatsApp chat" };
+
+const WA_PRESETS = [
+    { label: "Get a quote", text: "Hi {biz}, I'd like to get a shipping quote for a package." },
+    { label: "Track shipment", text: "Hi {biz}, can you tell me the status of my shipment?" },
+    { label: "Book pickup", text: "Hi {biz}, I'd like to book a pickup." },
+    { label: "General inquiry", text: "Hi {biz}, I have a question about your services." }
+];
 
 const BUSINESSES = [
     { name: "Pinas Cargo", description: "Door-to-door sea and air freight, specializing in balikbayan box delivery across the UAE, Philippines, and Qatar." },
@@ -24,6 +31,7 @@ function emptyForm(defaultBusiness = "") {
         company_name: defaultBusiness, tagline: "", logo_url: "", phone: "", email: "", address: "", website: "",
         contact_name: "", job_title: "", ios_url: "", android_url: "", fallback_url: "",
         fg_color: "#000000", bg_color: "#FFFFFF",
+        wa_phone: "63", wa_message: "",
         links: [{ label: "", url: "" }]
     };
 }
@@ -79,6 +87,8 @@ export default function QrCodesPage() {
             fallback_url: c.fallback_url || "",
             fg_color: c.fg_color || "#000000",
             bg_color: c.bg_color || "#FFFFFF",
+            wa_phone: c.wa_phone || "63",
+            wa_message: c.wa_message || "",
             links: c.links.length ? c.links.map(l => ({ label: l.label, url: l.url })) : [{ label: "", url: "" }]
         });
         setEditingId(c.id);
@@ -127,6 +137,8 @@ export default function QrCodesPage() {
             fallback_url: form.fallback_url.trim(),
             fg_color: form.fg_color,
             bg_color: form.bg_color,
+            wa_phone: form.type === "whatsapp" ? form.wa_phone.replace(/\D/g, "") : "",
+            wa_message: form.type === "whatsapp" ? form.wa_message.trim() : "",
             links: form.type === "multilink" ? form.links.filter(l => l.label.trim() && l.url.trim()) : []
         };
 
@@ -216,6 +228,7 @@ export default function QrCodesPage() {
                                             {c.type === "multilink" && `${c.links.length} link${c.links.length === 1 ? "" : "s"}`}
                                             {c.type === "vcard" && (c.contact_name || c.company_name)}
                                             {c.type === "applink" && (c.ios_url || c.android_url || c.fallback_url)}
+                                            {c.type === "whatsapp" && `+${c.wa_phone}${c.wa_message ? ` · "${c.wa_message.slice(0, 40)}${c.wa_message.length > 40 ? "…" : ""}"` : ""}`}
                                         </div>
                                     </div>
                                 </div>
@@ -251,6 +264,7 @@ export default function QrCodesPage() {
                                         <option value="multilink">Multi-link (company details + all links)</option>
                                         <option value="vcard">vCard (adds a contact directly, works offline)</option>
                                         <option value="applink">App Link (opens the right app store per device)</option>
+                                        <option value="whatsapp">WhatsApp chat (opens with a message pre-filled)</option>
                                     </select>
                                 </div>
                             </div>
@@ -354,6 +368,38 @@ export default function QrCodesPage() {
                                 </div>
                             )}
 
+                            {form.type === "whatsapp" && (
+                                <div style={{ marginBottom: 14 }}>
+                                    <div style={fieldGridStyle}>
+                                        <div>
+                                            <label style={labelStyle}>WhatsApp Number *</label>
+                                            <input required value={form.wa_phone} onChange={e => setForm({ ...form, wa_phone: e.target.value })} style={{ ...inputStyle, fontFamily: "monospace" }} placeholder="639171234567" />
+                                            <p style={{ fontSize: 12, color: "#9AA0AE", margin: "5px 0 0" }}>Country code + number, digits only. No leading 0 or plus sign.</p>
+                                        </div>
+                                        <div>
+                                            <label style={labelStyle}>Chips</label>
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                                {WA_PRESETS.map(p => (
+                                                    <button key={p.label} type="button" onClick={() => setForm({ ...form, wa_message: p.text.replace("{biz}", form.company_name || "there") })} style={presetChipStyle}>
+                                                        {p.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <label style={labelStyle}>Pre-filled Message</label>
+                                    <textarea value={form.wa_message} onChange={e => setForm({ ...form, wa_message: e.target.value })} maxLength={600} rows={3}
+                                        style={{ ...inputStyle, width: "100%", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }}
+                                        placeholder="Hi, I'd like to ask about..." />
+                                    <p style={{ fontSize: 12, color: "#9AA0AE", margin: "5px 0 10px" }}>{form.wa_message.length} / 600 characters</p>
+
+                                    <div style={{ background: "#F7F8FA", border: "1px solid #E2E4E9", borderRadius: 8, padding: "9px 11px", fontFamily: "monospace", fontSize: 12.5, color: "#1B1F5C", wordBreak: "break-all" }}>
+                                        wa.me/{form.wa_phone.replace(/\D/g, "")}{form.wa_message ? `?text=${encodeURIComponent(form.wa_message)}` : ""}
+                                    </div>
+                                </div>
+                            )}
+
                             <label style={labelStyle}>Brand Customization</label>
                             <div style={{ ...fieldGridStyle, gridTemplateColumns: "1fr 1fr 1fr" }}>
                                 <div>
@@ -391,6 +437,7 @@ const tabStyle = active => ({
     fontSize: 13, fontWeight: 600, cursor: "pointer"
 });
 const linkBtnStyle = { background: "none", border: "none", color: "#1CA7EC", cursor: "pointer", fontSize: 13, padding: 0 };
+const presetChipStyle = { background: "#F7F8FA", border: "1px solid #E2E4E9", borderRadius: 20, padding: "5px 11px", fontSize: 12, color: "#4B5468", cursor: "pointer" };
 const overlayStyle = { position: "fixed", inset: 0, background: "rgba(20,24,80,0.35)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 50 };
 const modalStyle = { background: "#fff", borderRadius: 16, padding: 30, width: "100%", maxWidth: 600, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 50px rgba(20,24,80,0.25)" };
 const fieldGridStyle = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 };

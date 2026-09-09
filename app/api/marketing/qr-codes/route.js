@@ -29,14 +29,14 @@ export async function POST(request) {
     const body = await request.json();
     const {
         name, type, target_url, company_name, tagline, logo_url, phone, email, address, website, links,
-        contact_name, job_title, ios_url, android_url, fallback_url, fg_color, bg_color
+        contact_name, job_title, ios_url, android_url, fallback_url, fg_color, bg_color, wa_phone, wa_message
     } = body;
 
     if (!name || !type) {
         return NextResponse.json({ error: "name and type are required." }, { status: 400 });
     }
-    if (!["link", "multilink", "vcard", "applink"].includes(type)) {
-        return NextResponse.json({ error: "type must be 'link', 'multilink', 'vcard', or 'applink'." }, { status: 400 });
+    if (!["link", "multilink", "vcard", "applink", "whatsapp"].includes(type)) {
+        return NextResponse.json({ error: "type must be 'link', 'multilink', 'vcard', 'applink', or 'whatsapp'." }, { status: 400 });
     }
     if (type === "link" && !target_url) {
         return NextResponse.json({ error: "target_url is required for a single-link QR code." }, { status: 400 });
@@ -46,6 +46,9 @@ export async function POST(request) {
     }
     if (type === "applink" && !ios_url && !android_url && !fallback_url) {
         return NextResponse.json({ error: "At least one of ios_url, android_url, or fallback_url is required for an App Link QR code." }, { status: 400 });
+    }
+    if (type === "whatsapp" && !/^\d{7,15}$/.test((wa_phone || "").replace(/\D/g, ""))) {
+        return NextResponse.json({ error: "wa_phone must be a valid number with country code (digits only, 7-15 digits)." }, { status: 400 });
     }
     if (fg_color !== undefined && fg_color !== "" && !isHexColor(fg_color)) {
         return NextResponse.json({ error: "fg_color must be a hex color like #1B1F5C." }, { status: 400 });
@@ -65,10 +68,11 @@ export async function POST(request) {
             try {
                 ({ rows } = await client.query(
                     `INSERT INTO qr_codes (slug, name, type, target_url, company_name, tagline, logo_url, phone, email, address, website,
-                        contact_name, job_title, ios_url, android_url, fallback_url, fg_color, bg_color)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING id, slug`,
+                        contact_name, job_title, ios_url, android_url, fallback_url, fg_color, bg_color, wa_phone, wa_message)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING id, slug`,
                     [slug, name, type, type === "link" ? target_url : null, company_name || null, tagline || null, logo_url || null, phone || null, email || null, address || null, website || null,
-                        contact_name || null, job_title || null, ios_url || null, android_url || null, fallback_url || null, fg_color || "#000000", bg_color || "#FFFFFF"]
+                        contact_name || null, job_title || null, ios_url || null, android_url || null, fallback_url || null, fg_color || "#000000", bg_color || "#FFFFFF",
+                        type === "whatsapp" ? (wa_phone || "").replace(/\D/g, "") : null, type === "whatsapp" ? (wa_message || null) : null]
                 ));
                 break;
             } catch (err) {

@@ -13,6 +13,11 @@ export default async function QrLandingPage({ params }) {
         redirect(qr.target_url);
     }
 
+    if (qr.type === "whatsapp") {
+        const text = qr.wa_message ? `?text=${encodeURIComponent(qr.wa_message)}` : "";
+        redirect(`https://wa.me/${qr.wa_phone}${text}`);
+    }
+
     if (qr.type === "applink") {
         const userAgent = (await headers()).get("user-agent") || "";
         const isIOS = /iPhone|iPad|iPod/i.test(userAgent);

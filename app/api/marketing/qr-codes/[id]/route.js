@@ -12,14 +12,14 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const {
         name, type, target_url, company_name, tagline, logo_url, phone, email, address, website, links,
-        contact_name, job_title, ios_url, android_url, fallback_url, fg_color, bg_color
+        contact_name, job_title, ios_url, android_url, fallback_url, fg_color, bg_color, wa_phone, wa_message
     } = await request.json();
 
     if (!name || !type) {
         return NextResponse.json({ error: "name and type are required." }, { status: 400 });
     }
-    if (!["link", "multilink", "vcard", "applink"].includes(type)) {
-        return NextResponse.json({ error: "type must be 'link', 'multilink', 'vcard', or 'applink'." }, { status: 400 });
+    if (!["link", "multilink", "vcard", "applink", "whatsapp"].includes(type)) {
+        return NextResponse.json({ error: "type must be 'link', 'multilink', 'vcard', 'applink', or 'whatsapp'." }, { status: 400 });
     }
     if (type === "link" && !target_url) {
         return NextResponse.json({ error: "target_url is required for a single-link QR code." }, { status: 400 });
@@ -29,6 +29,9 @@ export async function PUT(request, { params }) {
     }
     if (type === "applink" && !ios_url && !android_url && !fallback_url) {
         return NextResponse.json({ error: "At least one of ios_url, android_url, or fallback_url is required for an App Link QR code." }, { status: 400 });
+    }
+    if (type === "whatsapp" && !/^\d{7,15}$/.test((wa_phone || "").replace(/\D/g, ""))) {
+        return NextResponse.json({ error: "wa_phone must be a valid number with country code (digits only, 7-15 digits)." }, { status: 400 });
     }
     if (fg_color !== undefined && fg_color !== "" && !isHexColor(fg_color)) {
         return NextResponse.json({ error: "fg_color must be a hex color like #1B1F5C." }, { status: 400 });
@@ -44,10 +47,11 @@ export async function PUT(request, { params }) {
         const { rowCount } = await client.query(
             `UPDATE qr_codes SET name=$1, type=$2, target_url=$3, company_name=$4, tagline=$5, logo_url=$6,
                 phone=$7, email=$8, address=$9, website=$10, contact_name=$11, job_title=$12,
-                ios_url=$13, android_url=$14, fallback_url=$15, fg_color=$16, bg_color=$17, updated_at=now()
-             WHERE id=$18`,
+                ios_url=$13, android_url=$14, fallback_url=$15, fg_color=$16, bg_color=$17, wa_phone=$18, wa_message=$19, updated_at=now()
+             WHERE id=$20`,
             [name, type, type === "link" ? target_url : null, company_name || null, tagline || null, logo_url || null, phone || null, email || null, address || null, website || null,
-                contact_name || null, job_title || null, ios_url || null, android_url || null, fallback_url || null, fg_color || "#000000", bg_color || "#FFFFFF", id]
+                contact_name || null, job_title || null, ios_url || null, android_url || null, fallback_url || null, fg_color || "#000000", bg_color || "#FFFFFF",
+                type === "whatsapp" ? (wa_phone || "").replace(/\D/g, "") : null, type === "whatsapp" ? (wa_message || null) : null, id]
         );
         if (rowCount === 0) {
             await client.query("ROLLBACK");
