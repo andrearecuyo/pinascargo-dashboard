@@ -31,7 +31,7 @@ function emptyForm(defaultBusiness = "") {
         company_name: defaultBusiness, tagline: "", logo_url: "", phone: "", email: "", address: "", website: "",
         contact_name: "", job_title: "", ios_url: "", android_url: "", fallback_url: "",
         fg_color: "#000000", bg_color: "#FFFFFF",
-        wa_phone: "63", wa_message: "",
+        wa_phone: "", wa_message: "",
         links: [{ label: "", url: "" }]
     };
 }
@@ -373,7 +373,7 @@ export default function QrCodesPage() {
                                     <div style={fieldGridStyle}>
                                         <div>
                                             <label style={labelStyle}>WhatsApp Number *</label>
-                                            <input required value={form.wa_phone} onChange={e => setForm({ ...form, wa_phone: e.target.value })} style={{ ...inputStyle, fontFamily: "monospace" }} placeholder="639171234567" />
+                                            <input required value={form.wa_phone} onChange={e => setForm({ ...form, wa_phone: e.target.value })} style={{ ...inputStyle, fontFamily: "monospace" }} placeholder="" />
                                             <p style={{ fontSize: 12, color: "#9AA0AE", margin: "5px 0 0" }}>Country code + number, digits only. No leading 0 or plus sign.</p>
                                         </div>
                                         <div>
